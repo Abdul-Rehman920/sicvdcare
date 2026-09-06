@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SICVD Care — One record, every heartbeat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F5F8F6;
+    --panel: #FFFFFF;
+    --ink: #12211D;
+    --ink-soft: #2A3B36;
+    --muted: #5A6B65;
+    --teal: #0B7A65;
+    --teal-deep: #0A5C4D;
+    --teal-pale: #E4F0EC;
+    --trace: #C23B32;
+    --line: #D9E1DD;
+    --paper-on-dark: #EAF3EF;
+    --max: 1120px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono{ font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+  a{ color: inherit; }
+  .wrap{ max-width: var(--max); margin: 0 auto; padding: 0 32px; }
+  section{ padding: 96px 0; }
+  h1,h2,h3{ margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  p{ margin: 0; }
+
+  /* ---------- Header ---------- */
+  header.nav{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(245,248,246,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner{
+    max-width: var(--max); margin: 0 auto; padding: 18px 32px;
+    display:flex; align-items:center; justify-content: space-between;
+    gap: 24px;
+  }
+  .brand{
+    display:flex; align-items:center; gap: 10px;
+    font-weight: 600; font-size: 1.05rem; text-decoration:none; color: var(--ink);
+  }
+  .brand .beat{
+    width: 22px; height: 22px; flex-shrink:0;
+  }
+  .nav-links{
+    display:flex; gap: 28px; list-style:none; margin:0; padding:0;
+    font-size: 0.94rem; color: var(--ink-soft);
+  }
+  .nav-links a{ text-decoration:none; }
+  .nav-links a:hover{ color: var(--teal-deep); }
+  .nav-actions{ display:flex; align-items:center; gap: 20px; font-size: 0.94rem; }
+  .nav-actions .login-link{ text-decoration:none; color: var(--ink-soft); }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding: 11px 20px; border-radius: 3px; font-size: 0.94rem; font-weight: 600;
+    text-decoration:none; border: 1px solid transparent; cursor:pointer;
+  }
+  .btn-primary{ background: var(--teal); color: #fff; }
+  .btn-primary:hover{ background: var(--teal-deep); }
+  .btn-ghost{ background: transparent; border-color: var(--ink); color: var(--ink); }
+  .btn-ghost:hover{ background: var(--ink); color: #fff; }
+  .btn-invert{ background: var(--paper-on-dark); color: var(--ink); }
+  .btn-invert:hover{ background: #fff; }
+
+  @media (max-width: 860px){
+    .nav-links{ display:none; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero .wrap{
+    display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items:center;
+    padding-top: 40px; padding-bottom: 40px;
+  }
+  .hero h1{
+    font-size: clamp(2.1rem, 3.6vw, 3.1rem);
+    line-height: 1.12;
+    max-width: 16ch;
+  }
+  .hero .lede{
+    margin-top: 22px; font-size: 1.12rem; color: var(--ink-soft); max-width: 46ch;
+  }
+  .hero .cta-row{ margin-top: 34px; display:flex; gap: 14px; flex-wrap: wrap; }
+
+  .trace-panel{
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 22px 22px 18px;
+  }
+  .trace-head{
+    display:flex; justify-content: space-between; align-items:baseline;
+    margin-bottom: 6px;
+  }
+  .trace-head .label{ font-size: 0.82rem; color: var(--muted); }
+  .trace-head .reading{ font-size: 1.4rem; font-weight: 600; color: var(--teal-deep); }
+  .trace-head .reading span{ font-size: 0.8rem; color: var(--muted); font-weight: 500; margin-left: 4px;}
+
+  svg.ecg{ display:block; width: 100%; height: auto; }
+  .ecg-path{
+    fill: none; stroke: var(--trace); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 2400;
+    stroke-dashoffset: 2400;
+    animation: draw 2.4s cubic-bezier(.4,0,.2,1) 0.2s forwards;
+  }
+  .ecg-baseline{ stroke: var(--line); stroke-width: 1; }
+  @keyframes draw{ to{ stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce){
+    .ecg-path{ animation: none; stroke-dashoffset: 0; }
+  }
+  .trace-foot{ margin-top: 10px; font-size: 0.8rem; color: var(--muted); }
+
+  @media (max-width: 860px){
+    .hero .wrap{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Section headings ---------- */
+  .section-head{ max-width: 56ch; margin-bottom: 48px; }
+  .section-head h2{ font-size: clamp(1.6rem, 2.4vw, 2.1rem); }
+  .section-head p{ margin-top: 14px; color: var(--ink-soft); font-size: 1.04rem; }
+
+  /* ---------- Problem ---------- */
+  .problem{ border-top: 1px solid var(--line); }
+  .pain-list{ display:flex; flex-direction: column; }
+  .pain-row{
+    display:grid; grid-template-columns: 220px 1fr; gap: 32px;
+    padding: 26px 0; border-top: 1px solid var(--line);
+  }
+  .pain-row:last-child{ border-bottom: 1px solid var(--line); }
+  .pain-row .tag{ font-weight: 600; color: var(--ink); }
+  .pain-row .desc{ color: var(--ink-soft); max-width: 58ch; }
+  @media (max-width: 700px){
+    .pain-row{ grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  /* ---------- How it works ---------- */
+  .how{ background: var(--teal-pale); }
+  .steps{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    border-top: 1px solid #C7DCD5; border-left: 1px solid #C7DCD5;
+  }
+  .step{
+    padding: 30px 28px; border-right: 1px solid #C7DCD5; border-bottom: 1px solid #C7DCD5;
+  }
+  .step .num{ font-family: "IBM Plex Mono", monospace; color: var(--teal-deep); font-size: 0.95rem; }
+  .step h3{ margin-top: 14px; font-size: 1.15rem; }
+  .step p{ margin-top: 10px; color: var(--ink-soft); font-size: 0.98rem; }
+  @media (max-width: 780px){
+    .steps{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Features ---------- */
+  .feature-list{ display:flex; flex-direction: column; }
+  .feature-row{
+    display:grid; grid-template-columns: 1fr 1.6fr; gap: 32px;
+    padding: 28px 0; border-top: 1px solid var(--line);
+  }
+  .feature-row:last-child{ border-bottom: 1px solid var(--line); }
+  .feature-row h3{ font-size: 1.08rem; }
+  .feature-row p{ color: var(--ink-soft); max-width: 60ch; }
+  @media (max-width: 700px){
+    .feature-row{ grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  /* ---------- Benefits ---------- */
+  .benefits{ border-top: 1px solid var(--line); }
+  .stat-row{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
+    margin-top: 8px;
+  }
+  .stat{ border-top: 2px solid var(--ink); padding-top: 16px; }
+  .stat .figure{ font-family:"IBM Plex Mono", monospace; font-size: 1.7rem; color: var(--teal-deep); font-weight: 600; }
+  .stat .caption{ margin-top: 8px; color: var(--ink-soft); font-size: 0.98rem; }
+  @media (max-width: 780px){
+    .stat-row{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Security ---------- */
+  .security{ background: var(--ink); color: var(--paper-on-dark); }
+  .security .section-head p{ color: #B9C9C3; }
+  .security .section-head h2{ color: #fff; }
+  .sec-grid{
+    display:grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
+    background: #24352F; border: 1px solid #24352F;
+  }
+  .sec-item{ background: var(--ink); padding: 26px 28px; }
+  .sec-item h3{ font-size: 1.02rem; color: #fff; }
+  .sec-item p{ margin-top: 8px; color: #B9C9C3; font-size: 0.96rem; }
+  @media (max-width: 700px){
+    .sec-grid{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Demo ---------- */
+  .demo .wrap{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start;
+  }
+  .demo h2{ font-size: clamp(1.6rem, 2.4vw, 2.1rem); max-width: 14ch; }
+  .demo .lede{ margin-top: 16px; color: var(--ink-soft); max-width: 42ch; }
+  .demo-note{ margin-top: 26px; font-size: 0.92rem; color: var(--muted); }
+
+  form.demo-form{
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 28px;
+    display:flex; flex-direction: column; gap: 16px;
+  }
+  .field{ display:flex; flex-direction: column; gap: 6px; }
+  .field label{ font-size: 0.86rem; color: var(--ink-soft); }
+  .field input, .field textarea{
+    border: 1px solid var(--line); border-radius: 3px; padding: 10px 12px;
+    font-family: inherit; font-size: 0.96rem; background: #fff; color: var(--ink);
+  }
+  .field input:focus, .field textarea:focus{
+    outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal);
+  }
+  form.demo-form .btn{ margin-top: 4px; align-self: flex-start; }
+  .form-confirm{
+    display:none; padding: 14px 16px; background: var(--teal-pale); border: 1px solid #C7DCD5;
+    border-radius: 3px; color: var(--teal-deep); font-size: 0.94rem;
+  }
+  @media (max-width: 860px){
+    .demo .wrap{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq{ border-top: 1px solid var(--line); }
+  .faq-list{ max-width: 74ch; }
+  details{ border-bottom: 1px solid var(--line); padding: 20px 0; }
+  details summary{
+    cursor: pointer; font-weight: 600; font-size: 1.02rem; list-style: none;
+    display:flex; justify-content: space-between; align-items:center; gap: 20px;
+  }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary .icon{ font-family:"IBM Plex Mono", monospace; color: var(--teal); flex-shrink:0; }
+  details[open] summary .icon{ transform: rotate(45deg); }
+  details p{ margin-top: 12px; color: var(--ink-soft); max-width: 62ch; }
+
+  /* ---------- Final CTA + footer ---------- */
+  .final-cta{
+    background: var(--teal); color: #fff; text-align: left;
+  }
+  .final-cta .wrap{ display:flex; align-items:center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+  .final-cta h2{ color: #fff; font-size: clamp(1.5rem, 2.4vw, 2rem); max-width: 20ch; }
+
+  footer{ background: var(--ink); color: #B9C9C3; padding: 56px 0 32px; }
+  .foot-top{
+    display:flex; justify-content: space-between; gap: 40px; flex-wrap: wrap;
+    padding-bottom: 32px; border-bottom: 1px solid #24352F;
+  }
+  .foot-brand{ max-width: 34ch; }
+  .foot-brand .brand{ color: #fff; }
+  .foot-brand p{ margin-top: 12px; font-size: 0.92rem; color: #91A39C; }
+  .foot-cols{ display:flex; gap: 56px; flex-wrap: wrap; }
+  .foot-col h4{ font-size: 0.86rem; color: #fff; margin: 0 0 12px; font-weight: 600; }
+  .foot-col ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap: 9px; }
+  .foot-col a{ text-decoration:none; color: #B9C9C3; font-size: 0.92rem; }
+  .foot-col a:hover{ color: #fff; }
+  .foot-bottom{ margin-top: 24px; font-size: 0.84rem; color: #6E827A; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#top" class="brand">
+      <svg class="beat" viewBox="0 0 24 24" fill="none"><path d="M2 12h4l2-7 4 14 2-9 2 2h6" stroke="#0B7A65" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      SICVD Care
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="login-link">Log in</a>
+      <a href="signup.html" class="btn btn-primary">Sign up</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <h1>Every heartbeat, on record.</h1>
+        <p class="lede">SICVD Care replaces the paper file with a cardiac record your team can open instantly — on the ward, on call, or in a second opinion — so no history is ever missing when a decision has to be made.</p>
+        <div class="cta-row">
+          <a href="#demo" class="btn btn-primary">Book a demo</a>
+          <a href="#how" class="btn btn-ghost">See how it works</a>
+        </div>
+      </div>
+      <div class="trace-panel">
+        <div class="trace-head">
+          <span class="label mono">Patient record — live view</span>
+          <span class="reading mono">72<span>bpm</span></span>
+        </div>
+        <svg class="ecg" viewBox="0 0 1000 200" preserveAspectRatio="none">
+          <line class="ecg-baseline" x1="0" y1="100" x2="1000" y2="100"/>
+          <path class="ecg-path" d="M0,100 l20,0 q8,-12 16,0 l18,0 l6,10 l6,-100 l6,140 l8,-50 l20,0 q15,-25 30,0 l70,0
+            l20,0 q8,-12 16,0 l18,0 l6,10 l6,-100 l6,140 l8,-50 l20,0 q15,-25 30,0 l70,0
+            l20,0 q8,-12 16,0 l18,0 l6,10 l6,-100 l6,140 l8,-50 l20,0 q15,-25 30,0 l70,0
+            l20,0 q8,-12 16,0 l18,0 l6,10 l6,-100 l6,140 l8,-50 l20,0 q15,-25 30,0 l70,0
+            l20,0 q8,-12 16,0 l18,0 l6,10 l6,-100 l6,140 l8,-50 l20,0 q15,-25 30,0 l70,0"/>
+        </svg>
+        <div class="trace-foot">Accessed from Dr. Farah's phone · Cardiology ward</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="problem" id="problem">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>The record only exists in one place — the file the patient is carrying.</h2>
+        <p>Most cardiovascular units still run entirely on paper. It works, until it doesn't — and the missing history is the patient standing in front of you.</p>
+      </div>
+      <div class="pain-list">
+        <div class="pain-row">
+          <div class="tag">One physical copy</div>
+          <div class="desc">Every ECG and lab report lives inside a single paper file. If it's misplaced, torn, or left at home, that history is gone for good — there's no second copy to fall back on.</div>
+        </div>
+        <div class="pain-row">
+          <div class="tag">Carried by the patient</div>
+          <div class="desc">The patient holds their own record between visits. A returning patient without their file means starting from zero — repeating tests, guessing at a baseline, losing time a cardiac case doesn't have.</div>
+        </div>
+        <div class="pain-row">
+          <div class="tag">No access outside the ward</div>
+          <div class="desc">A doctor reviewing a case from home, or a second opinion from another department, has to wait for the physical file to be walked over before any decision can move forward.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>From ECG printout to patient file, in three steps.</h2>
+        <p>Built around the equipment your ward already has — no new machines required.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">01</div>
+          <h3>Capture the ECG</h3>
+          <p>The technician takes the ECG as usual and captures the printout through the app's camera.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3>File it to the patient</h3>
+          <p>The reading is attached to the patient's record automatically, alongside their visit history.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3>Open it anywhere</h3>
+          <p>Any authorised doctor can pull up the full history from their phone — on the ward or off it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>What's in the patient's file</h2>
+        <p>Nothing you have to learn from scratch — just the file, made reachable.</p>
+      </div>
+      <div class="feature-list">
+        <div class="feature-row">
+          <h3>Mobile access</h3>
+          <p>Doctors open any patient's record from their own phone or tablet — during rounds, on call, or off site.</p>
+        </div>
+        <div class="feature-row">
+          <h3>Full visit timeline</h3>
+          <p>Every ECG and report is laid out by date, so a doctor sees how a patient's condition has moved over time, not just the latest reading.</p>
+        </div>
+        <div class="feature-row">
+          <h3>Role-based access</h3>
+          <p>Doctors, technicians, and administrators each see what their role needs — nothing more.</p>
+        </div>
+        <div class="feature-row">
+          <h3>Works with your existing machine</h3>
+          <p>No new ECG hardware to buy. If it prints, it can go into the patient's file.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="benefits">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>What changes on the ward</h2>
+        <p>Not a new system to manage — just the delay and the guesswork taken out of the one you already run.</p>
+      </div>
+      <div class="stat-row">
+        <div class="stat">
+          <div class="figure mono">1 file</div>
+          <div class="caption">Per patient, kept in one place instead of scattered across paper copies.</div>
+        </div>
+        <div class="stat">
+          <div class="figure mono">0 repeats</div>
+          <div class="caption">No re-running an ECG just because the last one couldn't be found.</div>
+        </div>
+        <div class="stat">
+          <div class="figure mono">Any ward</div>
+          <div class="caption">A history that's just as available in the ER as it is in cardiology.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="security" id="security">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Handled the way patient data should be</h2>
+        <p>This is medical history, not a spreadsheet — it's built and hosted with that in mind.</p>
+      </div>
+      <div class="sec-grid">
+        <div class="sec-item">
+          <h3>Encrypted in transit and at rest</h3>
+          <p>Every ECG image and report is encrypted the moment it leaves the device and while it sits in storage.</p>
+        </div>
+        <div class="sec-item">
+          <h3>Access limited by role</h3>
+          <p>Only authorised hospital staff can open a patient's file — permissions are set per role, not shared logins.</p>
+        </div>
+        <div class="sec-item">
+          <h3>Every access logged</h3>
+          <p>A record of who opened a file and when, so the hospital always has an audit trail.</p>
+        </div>
+        <div class="sec-item">
+          <h3>Hosted on secure cloud infrastructure</h3>
+          <p>Data is stored on infrastructure built for uptime and backup, not on a single office computer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo" id="demo">
+    <div class="wrap">
+      <div>
+        <h2>Book a demo for your ward</h2>
+        <p class="lede">We'll walk through your current setup and show how the patient file would look for your cardiology department.</p>
+        <p class="demo-note">No cost and no obligation — just a working session with your team.</p>
+      </div>
+      <div>
+        <form class="demo-form" id="demoForm">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" type="text" required placeholder="Dr. Ayesha Khan">
+          </div>
+          <div class="field">
+            <label for="hospital">Hospital / clinic</label>
+            <input id="hospital" type="text" required placeholder="Hospital name">
+          </div>
+          <div class="field">
+            <label for="role">Role</label>
+            <input id="role" type="text" placeholder="Cardiologist, admin, technician…">
+          </div>
+          <div class="field">
+            <label for="contact">Phone or email</label>
+            <input id="contact" type="text" required placeholder="How should we reach you?">
+          </div>
+          <div class="field">
+            <label for="message">Anything we should know</label>
+            <textarea id="message" rows="3" placeholder="Current ECG machine, ward size, timing…"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Request a demo</button>
+          <div class="form-confirm" id="formConfirm">Thanks — we've received your request and will get in touch to schedule a time.</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq" id="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Questions hospitals usually ask</h2>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>Do we need to buy a new ECG machine?<span class="icon">+</span></summary>
+          <p>No. SICVD Care works with the printout your existing machine already produces — nothing new to install on the ward.</p>
+        </details>
+        <details>
+          <summary>Is patient data actually secure?<span class="icon">+</span></summary>
+          <p>Yes. Every record is encrypted in transit and at rest, access is limited by staff role, and every file open is logged.</p>
+        </details>
+        <details>
+          <summary>How long does it take to set up?<span class="icon">+</span></summary>
+          <p>Most wards are up and running within a few days — the process is mainly registering staff accounts and existing patients.</p>
+        </details>
+        <details>
+          <summary>What happens if the internet goes down?<span class="icon">+</span></summary>
+          <p>The technician can still capture the ECG as usual and upload it once the connection is back — nothing is lost in the meantime.</p>
+        </details>
+        <details>
+          <summary>Can more than one doctor view a file at the same time?<span class="icon">+</span></summary>
+          <p>Yes. Any authorised doctor can open a patient's record independently, from their own device, at the same time as a colleague.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<section class="final-cta">
+  <div class="wrap">
+    <h2>Give your cardiology ward one record it can't lose — and every doctor can trust.</h2>
+    <a href="#demo" class="btn btn-invert">Book a demo</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a href="#top" class="brand">SICVD Care</a>
+        <p>A patient record system built for cardiovascular units — from paper ECG to a file every authorised doctor can open.</p>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#problem">Problem</a></li>
+            <li><a href="#how">How it works</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#security">Security</a></li>
+          </ul>
+        </div>
+        <div class="foot-col">
+          <h4>Account</h4>
+          <ul>
+            <li><a href="login.html">Log in</a></li>
+            <li><a href="#demo">Book a demo</a></li>
+          </ul>
+        </div>
+        <div class="foot-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:hello@sicvdcare.com">hello@sicvdcare.com</a></li>
+            <li><a href="#">+92 300 0000000</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">© 2026 SICVD Care. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('demoForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    document.getElementById('formConfirm').style.display = 'block';
+    this.reset();
+  });
+</script>
+
+</body>
+</html>

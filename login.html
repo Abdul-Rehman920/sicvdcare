@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — SICVD Care</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F5F8F6;
+    --panel: #FFFFFF;
+    --ink: #12211D;
+    --ink-soft: #2A3B36;
+    --muted: #5A6B65;
+    --teal: #0B7A65;
+    --teal-deep: #0A5C4D;
+    --trace: #C23B32;
+    --line: #D9E1DD;
+    --paper-on-dark: #EAF3EF;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0; min-height: 100vh;
+    background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .mono{ font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  a{ color: inherit; }
+
+  .screen{ display:grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+
+  /* Left brand panel */
+  .brand-panel{
+    background: var(--ink); color: var(--paper-on-dark);
+    padding: 48px; display:flex; flex-direction: column; justify-content: space-between;
+  }
+  .brand{ display:flex; align-items:center; gap: 10px; font-weight: 600; font-size: 1.05rem; text-decoration:none; color: #fff; }
+  .brand .beat{ width: 22px; height: 22px; flex-shrink:0; }
+
+  .brand-copy{ max-width: 34ch; }
+  .brand-copy h1{ font-size: clamp(1.6rem, 2.6vw, 2.1rem); font-weight: 600; line-height: 1.2; margin: 0 0 14px; }
+  .brand-copy p{ color: #B9C9C3; font-size: 1rem; margin: 0; }
+
+  .trace-wrap{ border-top: 1px solid #24352F; padding-top: 22px; }
+  .trace-head{ display:flex; justify-content: space-between; font-size: 0.8rem; color: #91A39C; margin-bottom: 8px; }
+  svg.ecg{ display:block; width: 100%; height: auto; }
+  .ecg-path{
+    fill:none; stroke: var(--trace); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 1400; stroke-dashoffset: 1400;
+    animation: draw 2.2s cubic-bezier(.4,0,.2,1) 0.2s forwards;
+  }
+  .ecg-baseline{ stroke: #24352F; stroke-width: 1; }
+  @keyframes draw{ to{ stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce){ .ecg-path{ animation:none; stroke-dashoffset:0; } }
+
+  /* Right form panel */
+  .form-panel{ display:flex; align-items:center; justify-content:center; padding: 48px; }
+  .form-box{ width: 100%; max-width: 380px; }
+  .form-box h2{ font-size: 1.5rem; font-weight: 600; margin: 0 0 8px; }
+  .form-box .sub{ color: var(--muted); font-size: 0.96rem; margin: 0 0 32px; }
+
+  .field{ display:flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .field label{ font-size: 0.86rem; color: var(--ink-soft); }
+  .field input{
+    border: 1px solid var(--line); border-radius: 3px; padding: 11px 12px;
+    font-family: inherit; font-size: 0.96rem; background: #fff; color: var(--ink);
+  }
+  .field input:focus{ outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+
+  .row-between{ display:flex; justify-content: space-between; align-items:center; margin: -6px 0 22px; font-size: 0.88rem; }
+  .row-between a{ color: var(--teal-deep); text-decoration:none; font-weight: 500; }
+  .row-between a:hover{ text-decoration:underline; }
+
+  .btn{
+    display:inline-flex; width:100%; align-items:center; justify-content:center;
+    padding: 12px 20px; border-radius: 3px; font-size: 0.98rem; font-weight: 600;
+    text-decoration:none; border: 1px solid transparent; cursor:pointer;
+    background: var(--teal); color:#fff;
+  }
+  .btn:hover{ background: var(--teal-deep); }
+
+  .switch{ margin-top: 26px; font-size: 0.92rem; color: var(--muted); text-align:center; }
+  .switch a{ color: var(--teal-deep); font-weight: 600; text-decoration:none; }
+  .switch a:hover{ text-decoration:underline; }
+
+  .form-note{ margin-top: 28px; font-size: 0.82rem; color: var(--muted); }
+
+  @media (max-width: 860px){
+    .screen{ grid-template-columns: 1fr; }
+    .brand-panel{ display:none; }
+    .form-panel{ padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="brand-panel">
+    <a href="landing.html" class="brand">
+      <svg class="beat" viewBox="0 0 24 24" fill="none"><path d="M2 12h4l2-7 4 14 2-9 2 2h6" stroke="#C23B32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      SICVD Care
+    </a>
+    <div class="brand-copy">
+      <h1>One record, every heartbeat.</h1>
+      <p>Sign in to open any patient's cardiac history — from the ward, on call, or wherever the decision needs to be made.</p>
+    </div>
+    <div class="trace-wrap">
+      <div class="trace-head">
+        <span class="mono">Patient record — live view</span>
+        <span class="mono">72 bpm</span>
+      </div>
+      <svg class="ecg" viewBox="0 0 700 140" preserveAspectRatio="none">
+        <line class="ecg-baseline" x1="0" y1="70" x2="700" y2="70"/>
+        <path class="ecg-path" d="M0,70 l14,0 q6,-9 11,0 l13,0 l4,7 l4,-70 l4,98 l6,-35 l14,0 q11,-18 21,0 l49,0
+          l14,0 q6,-9 11,0 l13,0 l4,7 l4,-70 l4,98 l6,-35 l14,0 q11,-18 21,0 l49,0
+          l14,0 q6,-9 11,0 l13,0 l4,7 l4,-70 l4,98 l6,-35 l14,0 q11,-18 21,0 l49,0"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="form-panel">
+    <div class="form-box">
+      <h2>Log in</h2>
+      <p class="sub">Access your hospital's patient records.</p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email or staff ID</label>
+          <input id="email" type="text" required placeholder="you@hospital.com">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" required placeholder="••••••••">
+        </div>
+        <div class="row-between">
+          <span></span>
+          <a href="#">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn">Log in</button>
+      </form>
+
+      <div class="switch">Don't have an account? <a href="signup.html">Sign up</a></div>
+      <p class="form-note">Access is limited to registered hospital staff. Contact your admin if you need an account set up.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    alert('Login is not yet connected to a backend — this is a frontend preview.');
+  });
+</script>
+
+</body>
+</html>
